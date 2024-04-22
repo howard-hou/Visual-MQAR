@@ -1,15 +1,28 @@
 from datasets import load_dataset
 import os
+from visual_mqar.dataset import VisualMQARDataset
+from visual_mqar.config import Config
 
 os.environ["http_proxy"] = "http://127.0.0.1:8889"
 os.environ["https_proxy"] = "http://127.0.0.1:8889"
 
 
-if __name__ == '__main__':
+def fetch_huggingface_dataset():
     dataset = load_dataset('nomodeset/idl_image-1k-hf')['data']
-    from visual_mqar.dataset import VisualMQARDataset
-    dataset = VisualMQARDataset(dataset)
+    config = Config()
+    dataset = VisualMQARDataset(
+        dataset=dataset,
+        config=config
+    )
+    return dataset
+
+
+def main():
+    dataset = fetch_huggingface_dataset()
     for example in dataset:
         print(example)
         break
 
+
+if __name__ == '__main__':
+    main()

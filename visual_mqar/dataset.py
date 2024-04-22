@@ -1,11 +1,14 @@
 from torch.utils.data import Dataset
+from transformers import AutoTokenizer, CLIPImageProcessor
 
 
 class VisualMQARDataset(Dataset):
     def __init__(self, dataset, tokenizer=None, image_processor=None, config=None):
         self.dataset = dataset
-        self.tokenizer = tokenizer
-        self.image_processor = image_processor
+        self.tokenizer = tokenizer if config is None \
+            else AutoTokenizer.from_pretrained(config.text_decoder)
+        self.image_processor = image_processor if config is None \
+            else CLIPImageProcessor.from_pretrained(config.vision_encoder)
         self.config = config
 
     def __len__(self):

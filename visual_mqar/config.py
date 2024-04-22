@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Config:
     vision_encoder: str = "openai/clip-vit-base-patch32"
