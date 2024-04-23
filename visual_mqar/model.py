@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from transformers import CLIPVisionModel, AutoModel
+import os
+
+os.environ["http_proxy"] = "http://127.0.0.1:8889"
+os.environ["https_proxy"] = "http://127.0.0.1:8889"
 
 
 class VisualMQAR(nn.Module):
@@ -27,7 +31,7 @@ class VisualMQAR(nn.Module):
         image_features = self.encode_images(samples["images"])
         # prepare text embedding
         text_embeds = self.get_input_embeddings(samples["input_ids"])
-        print(image_features.shape, text_embeds.shape)
+        # print(f"{image_features.shape=}, {text_embeds.shape=}")
         input_embeds = torch.cat([image_features, text_embeds], dim=1)
         return input_embeds, samples["labels"]
 
@@ -37,23 +41,42 @@ class VisualMQAR(nn.Module):
         logits = self.lm_head(last_hidden_state)
         return logits, targets
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, _=None):
         logits, targets = self(batch)
         shift_logits = logits[..., :-1, :].contiguous()
         shift_labels = targets[..., 1:].contiguous()
-        loss = F.cross_entropy(shift_logits.view(-1, shift_logits.size(-1)),
-                               shift_labels.view(-1))
+        shift_labels = F.one_hot(shift_labels, shift_logits.size(-1))
+        shift_labels = torch.concat(
+            [
+                torch.full(
+                    (shift_labels.size(0), shift_logits.size(1) - shift_labels.size(1), shift_labels.size(-1)),
+                    fill_value=-100.),
+                shift_labels
+            ],
+            dim=1
+        )
+        # print(f"{shift_logits.shape=}, {shift_labels.shape=}")
+        loss = F.cross_entropy(shift_logits, shift_labels)
         return loss
 
 
-if __name__ == "__main__":
+def model_test():
     from config import Config
 
     config = Config()
     model = VisualMQAR(config)
     # generate random data
     images = torch.randn(2, 3, 224, 224)
-    input_ids = torch.randint(0, 50256, (2, 32))
-    labels = torch.randint(0, 50256, (2, 32))
+    input_ids = torch.randint(0, 50256, (2, 975))
+    labels = torch.randint(0, 50256, (2, 975))
     samples = {"images": images, "input_ids": input_ids, "labels": labels}
+    for key, value in samples.items():
+        print(key, value.shape)
     logits, targets = model(samples)
+    print(f"{logits.shape=}, {targets.shape=}")
+    loss = model.training_step(samples)
+    print(f"{loss.shape=}, {loss.item()}")
+
+
+if __name__ == "__main__":
+    model_test()

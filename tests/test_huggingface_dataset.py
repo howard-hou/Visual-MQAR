@@ -19,10 +19,13 @@ def fetch_huggingface_dataset():
 
 def main():
     dataset = fetch_huggingface_dataset()
+    print("dataset size:", len(dataset))
     for example in dataset:
-        print(example)
+        for key, value in example.items():
+            print(f"{key}: {value.shape}")
         break
 
 
 if __name__ == '__main__':
+    print("main")
     main()
