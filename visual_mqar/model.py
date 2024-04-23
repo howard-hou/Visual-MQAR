@@ -16,7 +16,10 @@ class VisualMQAR(nn.Module):
         self.text_decoder = AutoModel.from_pretrained(config.text_decoder)
         self.vision_projector = nn.Linear(config.vision_encoder_hidden_size, config.text_decoder_hidden_size,
                                           bias=False)
-        self.lm_head = nn.Linear(config.text_decoder_hidden_size, config.vocab_size, bias=False)
+        self.lm_head = nn.Sequential(
+            nn.Linear(config.text_decoder_hidden_size, config.vocab_size, bias=False),
+            nn.Softmax(dim=-1)
+        )
         self.vision_encoder.requires_grad_(False)
 
     def encode_images(self, images):
