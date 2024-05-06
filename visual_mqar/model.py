@@ -53,7 +53,7 @@ class VisualMQAR(nn.Module):
             [
                 torch.full(
                     (shift_labels.size(0), shift_logits.size(1) - shift_labels.size(1), shift_labels.size(-1)),
-                    fill_value=-100.),
+                    fill_value=-100.).to(shift_labels.device),
                 shift_labels
             ],
             dim=1

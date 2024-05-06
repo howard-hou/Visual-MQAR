@@ -52,6 +52,8 @@ class VisualMQARDataset(Dataset):
         )
 
     def __next__(self):
+        if self.iter_index >= len(self.dataset):
+            raise StopIteration
         data = self[self.iter_index]
         self.iter_index += 1
         return data
