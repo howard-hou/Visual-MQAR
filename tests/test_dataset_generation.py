@@ -1,9 +1,13 @@
 import io
+import PIL
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
+import warnings
+
+warnings.filterwarnings("error")
 
 plt.switch_backend('agg')
 
@@ -90,7 +94,9 @@ def setup_dataset():
     dataset = load_dataset('wikitext', 'wikitext-103-raw-v1')
     dd = []
     for field in dataset.keys():
-        for data in tqdm(dataset[field]['text']):
+        for index, data in enumerate(tqdm(dataset[field]['text'])):
+            if (index + 1) % 50 != 0:
+                continue
             try:
                 data = data.strip()
                 if len(data) < 2:
@@ -103,7 +109,7 @@ def setup_dataset():
                 })
             except:
                 continue
-    dataset = Dataset.from_list(data)
+    dataset = Dataset.from_list(dd)
     print(dataset)
     dataset.save_to_disk('data')
 
