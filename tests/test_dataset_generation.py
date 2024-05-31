@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 from matplotlib import font_manager
 import warnings
 
-warnings.filterwarnings("error")
-
 plt.switch_backend('agg')
 
 import matplotlib.patheffects as path_effects
@@ -87,29 +85,32 @@ def test_draw_text():
     plt.figimage(img)
     plt.show()
 
+flag = True
+
 
 def setup_dataset():
     from tqdm import tqdm
     from datasets import Dataset
     dataset = load_dataset('wikitext', 'wikitext-103-raw-v1')
-    dd = []
-    for field in dataset.keys():
-        for index, data in enumerate(tqdm(dataset[field]['text'])):
-            if (index + 1) % 50 != 0:
-                continue
-            try:
-                data = data.strip()
-                if len(data) < 2:
+    def aa():
+        global flag
+        if flag:
+            warnings.filterwarnings("error")
+            flag = False
+        for field in dataset.keys():
+            for index, data in enumerate(tqdm(dataset[field]['text'])):
+                if (index + 1) % 40 != 0:
                     continue
-                text = preprocess_text(data)
-                img = draw_text(text)
-                dd.append({
-                    'text': text,
-                    'image': img
-                })
-            except:
-                continue
-    dataset = Dataset.from_list(dd)
+                try:
+                    data = data.strip()
+                    if len(data) < 2:
+                        continue
+                    text = preprocess_text(data)
+                    img = draw_text(text)
+                    yield {'image': img, 'text': text}
+                except:
+                    continue
+    dataset = Dataset.from_generator(aa, num_proc=4)
     print(dataset)
     dataset.save_to_disk('data')
 

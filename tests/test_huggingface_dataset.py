@@ -2,8 +2,13 @@ from typing import Tuple, List
 
 from datasets import load_dataset
 import os
+
+import sys
+sys.path.append("..")
+
 from visual_mqar.dataset import VisualMQARDataset
 from visual_mqar.config import Config
+
 from matplotlib import pyplot as plt
 import numpy as np
 from matplotlib import patheffects as path_effects
@@ -13,7 +18,9 @@ os.environ["https_proxy"] = "http://127.0.0.1:8889"
 
 
 def fetch_huggingface_dataset():
-    dataset = load_dataset('nomodeset/idl_image-1k-hf')['data']
+    dataset = load_dataset('nomodeset/idl_image-1k-hf')
+    print(dataset.keys())
+    dataset = dataset['data']
     config = Config()
     dataset = VisualMQARDataset(
         dataset=dataset,
